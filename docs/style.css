@@ -1,0 +1,188 @@
+body {
+    font-family: 'Press Start 2P', cursive; /* Arcade font */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #1a1a1a; /* Dark background */
+    color: #ffffff;
+    margin: 0;
+    padding: 10px; /* Reduced padding slightly */
+    box-sizing: border-box;
+    /* Prevent text selection */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.container {
+    text-align: center;
+    background-color: #2a2a2a;
+    padding: 15px 20px; /* Adjusted padding */
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    border: 2px solid #0ff; /* Cyan border */
+    max-width: 95%;
+    width: 700px; /* Max width */
+}
+
+h1 {
+    color: #0ff;
+    text-shadow:
+        0 0 1px #0ff,   /* subtle inner glow */
+        0 0 2px #0ff;   /* softer outer glow */
+    margin-bottom: 10px;
+    font-size: 1.6em;
+}
+
+.status-box {
+    margin: 10px 0; /* Reduced margin */
+    padding: 8px; /* Adjusted padding */
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 5px;
+    min-height: 1.2em; /* Prevent layout shift */
+    font-size: 0.7em; /* Slightly smaller */
+    color: #ccc;
+}
+
+#pongCanvas {
+    display: block;
+    margin: 10px auto; /* Reduced margin */
+    background-color: #000;
+    border: 2px solid #555;
+    width: 100%; /* Responsive width */
+    height: auto; /* Maintain aspect ratio */
+    aspect-ratio: 600 / 400; /* Match training dimensions */
+    max-width: 600px; /* Limit max size */
+    border-radius: 5px;
+    touch-action: none;
+}
+
+.controls {
+    margin: 10px 0; /* Reduced margin */
+}
+
+button {
+    font-family: 'Press Start 2P', cursive;
+    background-color: #0ff; /* Cyan */
+    color: #000;
+    border: none;
+    padding: 8px 15px; /* Adjusted padding */
+    margin: 0 8px; /* Adjusted margin */
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.7em; /* Adjusted size */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+button:hover {
+    background-color: #0cc;
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+
+button:disabled {
+    background-color: #555;
+    color: #999;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Touch Controls Styling Added Back */
+.touch-controls {
+    display: flex; /* Use flexbox */
+    justify-content: center; /* Center buttons horizontally */
+    gap: 20px; /* Space between buttons */
+    margin: 15px 0;
+    /* Hide by default, show only on touch devices (simplistic check) */
+    display: none;
+}
+
+.touch-button {
+    padding: 15px 25px; /* Larger padding for easier touch */
+    font-size: 1em; /* Larger font */
+    background-color: #444; /* Different color for touch */
+    color: #eee;
+    border: 2px solid #888;
+    min-width: 100px; /* Ensure minimum width */
+}
+
+.touch-button:active {
+     background-color: #666;
+     transform: translateY(1px);
+}
+
+/* Show touch controls using a media query */
+@media (hover: none) and (pointer: coarse) {
+  .touch-controls {
+    display: flex;
+  }
+}
+@media (max-width: 768px) {
+    .touch-controls {
+        display: flex;
+    }
+}
+
+
+.scores {
+    display: flex;
+    justify-content: space-around;
+    margin: 10px 0; /* Reduced margin */
+    font-size: 0.9em; /* Adjusted size */
+    background-color: #333;
+    padding: 8px; /* Adjusted padding */
+    border-radius: 5px;
+    border: 1px solid #555;
+}
+
+.score-item {
+    color: #0ff; /* Cyan score text */
+}
+
+.score-item span {
+    color: #ffffff; /* White score number */
+    font-weight: bold;
+}
+
+.instructions {
+    margin-top: 10px; /* Reduced margin */
+    font-size: 0.6em; /* Smaller */
+    color: #aaa;
+}
+
+.footer {
+    margin-top: 15px; /* Reduced margin */
+    font-size: 0.5em; /* Smaller */
+    color: #888;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px 15px; /* Further adjust padding */
+    }
+    h1 {
+        font-size: 1.4em;
+    }
+    button {
+        padding: 6px 12px;
+        font-size: 0.6em;
+    }
+     .touch-button { /* Adjust touch button size for smaller screens */
+        padding: 12px 20px;
+        font-size: 0.9em;
+        min-width: 80px;
+    }
+    .scores {
+        font-size: 0.8em;
+    }
+}
