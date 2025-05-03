@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Pong RL Agent Demo (Player vs AI)</title> <link rel="stylesheet" href="style.css">
+    <title>Pong RL Agent Demo (Player vs AI)</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -17,6 +18,11 @@
             <button id="startButton">Start / Resume</button>
             <button id="resetButton" disabled>Reset Game</button>
         </div>
+        <div class="difficulty-control">
+            <label for="difficultySlider">Difficulty:</label>
+            <input type="range" id="difficultySlider" name="difficulty" min="0.5" max="2.0" step="0.1" value="1.0">
+            <span id="difficultyValue">1.0x</span>
+        </div>
         <div class="touch-controls">
             <button id="touchUpButton" class="touch-button">▲ UP</button>
             <button id="touchDownButton" class="touch-button">▼ DOWN</button>
@@ -27,6 +33,10 @@
         </div>
         <div class="instructions">
             Use 'W'/'S' or Touch Buttons to control the right paddle.
+            <br>
+            Adjust Difficulty slider for faster/slower game dynamics.
+            <br>
+            Space=Start/Pause, R=Reset.
         </div>
         <div class="footer">
             Agent trained using DQN. Play against it!

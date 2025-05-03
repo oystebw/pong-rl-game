@@ -1,3 +1,10 @@
+// app.js
+/**
+ * Main application logic for the Pong RL Demo. Player vs AI mode.
+ * Handles game loop, user input (keyboard, touch, slider), agent interaction,
+ * UI updates, speed slider, keyboard shortcuts.
+ * Includes auto-reset after scoring.
+ */
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM Elements ---
@@ -5,29 +12,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusDiv = document.getElementById('status');
     const startButton = document.getElementById('startButton');
     const resetButton = document.getElementById('resetButton');
-    const aiScoreSpan = document.getElementById('aiScore');     // Left paddle (Agent)
-    const playerScoreSpan = document.getElementById('playerScore'); // Right paddle (Human)
+    const aiScoreSpan = document.getElementById('aiScore');
+    const playerScoreSpan = document.getElementById('playerScore');
     const touchUpButton = document.getElementById('touchUpButton');
     const touchDownButton = document.getElementById('touchDownButton');
+    const difficultySlider = document.getElementById('difficultySlider');
+    const difficultyValueSpan = document.getElementById('difficultyValue');
 
     // --- Game State ---
     let env = null;
-    let agent = null; // The RL Agent (Left Paddle)
+    let agent = null;
     let animationFrameId = null;
-    let gameState = 'loading'; // loading, ready, running, paused, scored
+    let gameState = 'loading';
     let aiScore = 0;
     let playerScore = 0;
     let lastTimestamp = 0;
     let roundResetTimeoutId = null;
+    let gameSpeedMultiplier = 1.0;
 
     // --- Player Control ---
-    let playerPaddleY = 0; // Player paddle center y (physics coordinates)
+    let playerPaddleY = 0;
     const keysPressed = {};
     let touchUpActive = false;
     let touchDownActive = false;
 
     // --- Constants ---
-    const PADDLE_SPEED = 12.0;
+    const BASE_PADDLE_SPEED = 12.0;
     const NORM_HEIGHT = 400 / 2.0;
     const PADDLE_HALF_HEIGHT = 60 / 2.0;
     const SCORE_RESET_DELAY = 1000;
@@ -36,29 +46,36 @@ document.addEventListener('DOMContentLoaded', () => {
     // INITIALIZATION
     // ================================================
     async function initialize() {
+        if (!canvas || !statusDiv || !startButton || !resetButton || !aiScoreSpan || !playerScoreSpan || !difficultySlider || !difficultyValueSpan) {
+            console.error("Initialization failed: One or more required DOM elements not found.");
+            setStatus("Error: UI elements missing.");
+            return;
+        }
         setStatus('Initializing environment...');
         try {
-            canvas.width = 600;
-            canvas.height = 400;
-            env = new PongEnvJs(canvas); // Should be the 5D
+            canvas.width = 600; canvas.height = 400;
+            env = new PongEnvJs(canvas);
         } catch (e) {
             setStatus(`Error creating environment: ${e}`); console.error("Env creation failed:", e); return;
         }
-
         setStatus('Initializing AI agent...');
-        agent = new PongAgent(); // Should load 5D
+        agent = new PongAgent(); // Assumes agent.js defines PongAgent
         const modelLoaded = await agent.loadModel();
 
         if (modelLoaded) {
-            setStatus('Ready! Press Start / Resume.');
+            setStatus('Ready! Press Start / Resume or Space Bar.'); // Update status
             gameState = 'ready';
             startButton.disabled = false; startButton.textContent = 'Start Game';
             resetButton.disabled = true;
+            difficultySlider.disabled = false;
             setupEventListeners();
+            gameSpeedMultiplier = parseFloat(difficultySlider.value);
+            difficultyValueSpan.textContent = `${gameSpeedMultiplier.toFixed(1)}x`;
             resetGameVisuals();
         } else {
             setStatus('Error loading AI model. Cannot start game.');
             startButton.disabled = true; resetButton.disabled = true;
+            difficultySlider.disabled = true;
         }
     }
 
@@ -69,18 +86,50 @@ document.addEventListener('DOMContentLoaded', () => {
         startButton.addEventListener('click', togglePauseResume);
         resetButton.addEventListener('click', resetGame);
 
-        // Keyboard controls for player paddle
-        document.addEventListener('keydown', (event) => {
-            keysPressed[event.key.toLowerCase()] = true;
-             if (event.key.toLowerCase() === 'w' || event.key.toLowerCase() === 's') {
-                event.preventDefault();
+        difficultySlider.addEventListener('input', (event) => {
+            if (difficultyValueSpan) {
+                gameSpeedMultiplier = parseFloat(event.target.value);
+                difficultyValueSpan.textContent = `${gameSpeedMultiplier.toFixed(1)}x`;
             }
         });
-        document.addEventListener('keyup', (event) => {
-            keysPressed[event.key.toLowerCase()] = false;
+
+        // --- Keyboard Controls ---
+        document.addEventListener('keydown', (event) => {
+            const key = event.key.toLowerCase();
+            const code = event.code; // Use code for Space bar
+
+            // Paddle Movement Keys
+            if (key === 'w' || key === 's') {
+                keysPressed[key] = true;
+                event.preventDefault(); // Prevent page scrolling
+            }
+
+            // --- Game Control Keys ---
+            // Space Bar: Toggle Start/Pause/Resume
+            if (code === 'Space') {
+                event.preventDefault(); // Prevent default space bar action (scrolling/button press)
+                // Only allow toggle if not loading and not in the middle of score reset delay
+                if (gameState !== 'loading' && gameState !== 'scored') {
+                     togglePauseResume();
+                }
+            }
+            // 'R' Key: Reset Game
+            else if (key === 'r') {
+                 // Only allow reset if game is not in initial loading state
+                 if (gameState !== 'loading') {
+                     resetGame();
+                 }
+            }
         });
 
-        // Touch controls
+        document.addEventListener('keyup', (event) => {
+            const key = event.key.toLowerCase();
+            if (key === 'w' || key === 's') {
+                keysPressed[key] = false;
+            }
+        });
+
+        // --- Touch Controls ---
         touchUpButton.addEventListener('touchstart', (e) => { e.preventDefault(); touchUpActive = true; });
         touchUpButton.addEventListener('touchend', (e) => { e.preventDefault(); touchUpActive = false; });
         touchUpButton.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -94,32 +143,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // GAME CONTROL FUNCTIONS
     // ================================================
     function togglePauseResume() {
+        // This function now handles the logic based on gameState
+        // It's called by both the button click and space bar press
         if (gameState === 'running') { // Pause
             gameState = 'paused';
-            setStatus('Game Paused. Press Start / Resume.');
+            setStatus('Game Paused. Press Start / Resume or Space Bar.');
             startButton.textContent = 'Resume Game'; startButton.disabled = false;
+            difficultySlider.disabled = false;
             if (animationFrameId) cancelAnimationFrame(animationFrameId); animationFrameId = null;
             if (roundResetTimeoutId) clearTimeout(roundResetTimeoutId); roundResetTimeoutId = null;
         } else if (gameState === 'paused' || gameState === 'ready' || gameState === 'scored') { // Start or Resume
-            if (gameState === 'ready') { // Reset only if starting fresh
+            if (gameState === 'ready') {
                  env.reset();
-                 playerPaddleY = 0; // Reset player paddle
+                 playerPaddleY = 0;
                  resetGameVisuals();
             }
+            // If resuming from 'scored', resetRound will handle the env reset
             if (gameState !== 'scored') {
                 startOrResumeGameLoop();
             } else {
-                setStatus('Get Ready...');
-                startButton.disabled = true;
+                // If currently 'scored', pressing space/button shouldn't immediately restart
+                // It should wait for the resetRound timeout to finish
+                setStatus('Get Ready...'); // Indicate waiting
             }
         }
     }
 
     function startOrResumeGameLoop() {
+        // This function strictly starts/resumes the animation loop
+
         gameState = 'running';
         setStatus('Game running...');
         startButton.textContent = 'Pause Game'; startButton.disabled = false;
         resetButton.disabled = false;
+        difficultySlider.disabled = true; // Disable slider while running
         lastTimestamp = performance.now();
         if (!animationFrameId) {
             animationFrameId = requestAnimationFrame(gameLoop);
@@ -127,38 +184,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function resetGame() { // Full reset
+    function resetGame() { // Full reset triggered by button or 'R' key
         console.log("Resetting game...");
         if (animationFrameId) cancelAnimationFrame(animationFrameId); animationFrameId = null;
         if (roundResetTimeoutId) clearTimeout(roundResetTimeoutId); roundResetTimeoutId = null;
-        aiScore = 0; playerScore = 0; // Reset scores
+        aiScore = 0; playerScore = 0;
         updateScoreDisplay();
         env.reset();
-        playerPaddleY = 0; // Reset player paddle
+        playerPaddleY = 0;
         resetGameVisuals();
-        setStatus('Game Reset. Press Start Game.');
+        setStatus('Game Reset. Press Start Game or Space Bar.'); // Update status text
         gameState = 'ready';
         startButton.textContent = 'Start Game'; startButton.disabled = false;
         resetButton.disabled = true;
+        difficultySlider.disabled = false;
     }
 
-    // Called after SCORE_RESET_DELAY when a point is scored
     function resetRound() {
         console.log("Resetting round...");
         roundResetTimeoutId = null;
-
-        env.reset(); // Resets ball and internal AI agent paddle position
-        playerPaddleY = 0; // Reset player paddle control position
-        resetGameVisuals(); // Draw the reset state
-
-        startOrResumeGameLoop(); // Resume the game loop
+        env.reset();
+        playerPaddleY = 0;
+        resetGameVisuals();
+        startOrResumeGameLoop(); // Resume the game loop after reset
     }
 
 
     function resetGameVisuals() {
          if (env && env.ctx) {
-            env.paddle1_y = 0; // AI Agent paddle
-            env.paddle2_y = playerPaddleY; // Player paddle
+            env.paddle1_y = 0;
+            env.paddle2_y = playerPaddleY;
             env.render();
          }
     }
@@ -166,10 +221,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleScore(winner) {
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
-        gameState = 'scored';
+        gameState = 'scored'; // Set state to 'scored'
         setStatus(`Point for ${winner}!`);
         updateScoreDisplay();
-        startButton.disabled = true;
+        startButton.disabled = true; // Disable start/pause during score display
+        difficultySlider.disabled = true;
 
         if (roundResetTimeoutId) clearTimeout(roundResetTimeoutId);
         roundResetTimeoutId = setTimeout(resetRound, SCORE_RESET_DELAY);
@@ -179,20 +235,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // PLAYER PADDLE MOVEMENT
     // ================================================
     function updatePlayerPaddle(deltaTime) {
-        if (gameState !== 'running') return; // Ignore input if not running
+        if (gameState !== 'running') return;
 
-        const dt_paddle_speed = PADDLE_SPEED * 60 * deltaTime; // Use faster speed
+        const dt_factor = 60 * deltaTime * gameSpeedMultiplier;
+        const dt_paddle_move = BASE_PADDLE_SPEED * dt_factor;
+
         let moveDirection = 0;
-        // Combine keyboard and touch input
-        if (keysPressed['w'] || touchUpActive) { moveDirection = -1; } // Up
-        if (keysPressed['s'] || touchDownActive) { moveDirection = 1; } // Down
-        if ((keysPressed['w'] || touchUpActive) && (keysPressed['s'] || touchDownActive)) { moveDirection = 0; } // Cancel out
+        if (keysPressed['w'] || touchUpActive) { moveDirection = -1; }
+        if (keysPressed['s'] || touchDownActive) { moveDirection = 1; }
+        if ((keysPressed['w'] || touchUpActive) && (keysPressed['s'] || touchDownActive)) { moveDirection = 0; }
 
-        let targetY = playerPaddleY + moveDirection * dt_paddle_speed;
-
-        // Clamp player paddle position
+        let targetY = playerPaddleY + moveDirection * dt_paddle_move;
         targetY = Math.max(-NORM_HEIGHT + PADDLE_HALF_HEIGHT, Math.min(NORM_HEIGHT - PADDLE_HALF_HEIGHT, targetY));
-        playerPaddleY = targetY; // Update the player paddle position variable
+        playerPaddleY = targetY;
     }
 
 
@@ -201,36 +256,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // ================================================
     async function gameLoop(timestamp) {
         if (gameState !== 'running') {
-            animationFrameId = null; return; // Stop if not running
+            animationFrameId = null; return;
         }
 
         const deltaTime = Math.min(0.05, (timestamp - lastTimestamp) / 1000.0);
         lastTimestamp = timestamp;
 
-        // --- Input Phase ---
-        updatePlayerPaddle(deltaTime); // <<< Move the HUMAN player paddle
+        updatePlayerPaddle(deltaTime);
 
-        // --- Agent Update Phase ---
-        const currentState = env._normalize_state(); // Get 5D state
-        const agentAction = await agent.selectAction(currentState); // RL Agent action
+        const currentState = env._normalize_state();
+        const agentAction = await agent.selectAction(currentState);
 
-        // --- Environment Step Phase ---
-        // Pass RL agent's action and the HUMAN player's paddle position
-        const [nextState, reward, terminated, truncated, info] = env.step(agentAction, playerPaddleY, deltaTime);
+        const [nextState, reward, terminated, truncated, info] = env.step(agentAction, playerPaddleY, deltaTime, gameSpeedMultiplier);
 
-        // --- Scoring ---
         if (terminated) {
-            // If RL agent (paddle 1) wins, reward is +1
             if (reward > 0) { aiScore++; handleScore('AI'); }
-            else { playerScore++; handleScore('Player'); } // Player scored
-            return; // Exit gameLoop this frame
+            else { playerScore++; handleScore('Player'); }
+            return;
         }
 
-        // --- Render Phase ---
-        if (env) { env.render(); } // Render uses internal env.paddle1_y and env.paddle2_y
+        if (env) { env.render(); }
 
-        // --- Loop ---
-        if (gameState === 'running') { // Request next frame ONLY if still running
+        if (gameState === 'running') {
             animationFrameId = requestAnimationFrame(gameLoop);
         } else {
              animationFrameId = null;
@@ -243,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function setStatus(message) { statusDiv.textContent = message; }
     function updateScoreDisplay() {
         aiScoreSpan.textContent = aiScore;
-        playerScoreSpan.textContent = playerScore; // Use correct span ID for player
+        playerScoreSpan.textContent = playerScore;
     }
 
     // --- Start Initialization ---

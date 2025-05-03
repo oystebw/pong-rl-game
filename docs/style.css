@@ -1,30 +1,31 @@
+/* style.css */
 body {
-    font-family: 'Press Start 2P', cursive; /* Arcade font */
+    font-family: 'Press Start 2P', cursive;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #1a1a1a; /* Dark background */
+    background-color: #1a1a1a;
     color: #ffffff;
     margin: 0;
-    padding: 10px; /* Reduced padding slightly */
+    padding: 10px;
     box-sizing: border-box;
-    /* Prevent text selection */
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    overflow: hidden;
 }
 
 .container {
     text-align: center;
     background-color: #2a2a2a;
-    padding: 15px 20px; /* Adjusted padding */
+    padding: 15px 20px;
     border-radius: 10px;
     box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-    border: 2px solid #0ff; /* Cyan border */
+    border: 2px solid #0ff;
     max-width: 95%;
-    width: 700px; /* Max width */
+    width: 700px;
 }
 
 h1 {
@@ -37,152 +38,112 @@ h1 {
 }
 
 .status-box {
-    margin: 10px 0; /* Reduced margin */
-    padding: 8px; /* Adjusted padding */
+    margin: 10px 0;
+    padding: 8px;
     background-color: #333;
     border: 1px solid #555;
     border-radius: 5px;
-    min-height: 1.2em; /* Prevent layout shift */
-    font-size: 0.7em; /* Slightly smaller */
+    min-height: 1.2em;
+    font-size: 0.7em;
     color: #ccc;
 }
 
 #pongCanvas {
     display: block;
-    margin: 10px auto; /* Reduced margin */
+    margin: 10px auto;
     background-color: #000;
     border: 2px solid #555;
-    width: 100%; /* Responsive width */
-    height: auto; /* Maintain aspect ratio */
-    aspect-ratio: 600 / 400; /* Match training dimensions */
-    max-width: 600px; /* Limit max size */
+    width: 100%;
+    height: auto;
+    aspect-ratio: 600 / 400;
+    max-width: 600px;
     border-radius: 5px;
     touch-action: none;
 }
 
 .controls {
-    margin: 10px 0; /* Reduced margin */
+    margin: 10px 0;
 }
+
+/* Difficulty Slider Styling */
+.difficulty-control {
+    margin: 15px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    max-width: 400px; /* Limit width */
+}
+
+.difficulty-control label {
+    font-size: 0.7em;
+    color: #ccc;
+}
+
+#difficultySlider {
+    flex-grow: 1; /* Allow slider to take available space */
+    cursor: pointer;
+    /* Basic styling, can be customized further */
+    accent-color: #0ff; /* Match theme color */
+}
+
+#difficultyValue {
+    font-size: 0.7em;
+    color: #0ff;
+    min-width: 40px; /* Ensure space for text */
+    text-align: left;
+}
+
 
 button {
     font-family: 'Press Start 2P', cursive;
-    background-color: #0ff; /* Cyan */
+    background-color: #0ff;
     color: #000;
     border: none;
-    padding: 8px 15px; /* Adjusted padding */
-    margin: 0 8px; /* Adjusted margin */
+    padding: 8px 15px;
+    margin: 0 8px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 0.7em; /* Adjusted size */
+    font-size: 0.7em;
     transition: background-color 0.2s ease, transform 0.1s ease;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
 }
 
-button:hover {
-    background-color: #0cc;
-}
+button:hover { background-color: #0cc; }
+button:active { transform: translateY(1px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
+button:disabled { background-color: #555; color: #999; cursor: not-allowed; box-shadow: none; transform: none; }
 
-button:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-}
-
-
-button:disabled {
-    background-color: #555;
-    color: #999;
-    cursor: not-allowed;
-    box-shadow: none;
-    transform: none;
-}
-
-/* Touch Controls Styling Added Back */
+/* Touch Controls Styling */
 .touch-controls {
-    display: flex; /* Use flexbox */
-    justify-content: center; /* Center buttons horizontally */
-    gap: 20px; /* Space between buttons */
-    margin: 15px 0;
-    /* Hide by default, show only on touch devices (simplistic check) */
-    display: none;
-}
-
-.touch-button {
-    padding: 15px 25px; /* Larger padding for easier touch */
-    font-size: 1em; /* Larger font */
-    background-color: #444; /* Different color for touch */
-    color: #eee;
-    border: 2px solid #888;
-    min-width: 100px; /* Ensure minimum width */
-}
-
-.touch-button:active {
-     background-color: #666;
-     transform: translateY(1px);
-}
-
-/* Show touch controls using a media query */
-@media (hover: none) and (pointer: coarse) {
-  .touch-controls {
     display: flex;
-  }
+    justify-content: center;
+    gap: 20px;
+    margin: 15px 0;
+    display: none; /* Hidden by default */
 }
-@media (max-width: 768px) {
-    .touch-controls {
-        display: flex;
-    }
+.touch-button {
+    padding: 15px 25px; font-size: 1em; background-color: #444; color: #eee;
+    border: 2px solid #888; min-width: 100px; -webkit-tap-highlight-color: transparent;
 }
+.touch-button:active { background-color: #666; transform: translateY(1px); }
 
+@media (hover: none) and (pointer: coarse) { .touch-controls { display: flex; } }
+@media (max-width: 768px) { .touch-controls { display: flex; } }
 
 .scores {
-    display: flex;
-    justify-content: space-around;
-    margin: 10px 0; /* Reduced margin */
-    font-size: 0.9em; /* Adjusted size */
-    background-color: #333;
-    padding: 8px; /* Adjusted padding */
-    border-radius: 5px;
-    border: 1px solid #555;
+    display: flex; justify-content: space-around; margin: 10px 0; font-size: 0.9em;
+    background-color: #333; padding: 8px; border-radius: 5px; border: 1px solid #555;
 }
+.score-item { color: #0ff; }
+.score-item span { color: #ffffff; font-weight: bold; }
+.instructions { margin-top: 10px; font-size: 0.6em; color: #aaa; }
+.footer { margin-top: 15px; font-size: 0.5em; color: #888; }
 
-.score-item {
-    color: #0ff; /* Cyan score text */
-}
-
-.score-item span {
-    color: #ffffff; /* White score number */
-    font-weight: bold;
-}
-
-.instructions {
-    margin-top: 10px; /* Reduced margin */
-    font-size: 0.6em; /* Smaller */
-    color: #aaa;
-}
-
-.footer {
-    margin-top: 15px; /* Reduced margin */
-    font-size: 0.5em; /* Smaller */
-    color: #888;
-}
-
-/* Responsive adjustments */
 @media (max-width: 600px) {
-    .container {
-        padding: 10px 15px; /* Further adjust padding */
-    }
-    h1 {
-        font-size: 1.4em;
-    }
-    button {
-        padding: 6px 12px;
-        font-size: 0.6em;
-    }
-     .touch-button { /* Adjust touch button size for smaller screens */
-        padding: 12px 20px;
-        font-size: 0.9em;
-        min-width: 80px;
-    }
-    .scores {
-        font-size: 0.8em;
-    }
+    .container { padding: 10px 15px; }
+    h1 { font-size: 1.4em; }
+    button { padding: 6px 12px; font-size: 0.6em; }
+    .touch-button { padding: 12px 20px; font-size: 0.9em; min-width: 80px; }
+    .scores { font-size: 0.8em; }
+    .difficulty-control label, #difficultyValue { font-size: 0.6em; }
 }

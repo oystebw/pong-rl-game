@@ -1,3 +1,8 @@
+// agent.js
+/**
+ * Handles loading the ONNX model and performing inference.
+ * Expects a model trained on 5D state.
+ */
 class PongAgent {
     constructor(modelPath = "./dqn_pong_agent.onnx") {
         this.modelPath = modelPath;
